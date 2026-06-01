@@ -1,7 +1,10 @@
+import logging
 from typing import Set
 from aiohttp import web, WSMsgType
 from .base import BaseNotifier
 from src.models import AgentState
+
+logger = logging.getLogger(__name__)
 
 
 class WebNotifier(BaseNotifier):
@@ -37,13 +40,13 @@ class WebNotifier(BaseNotifier):
                 self._site = web.TCPSite(self._runner, self.host, port)
                 await self._site.start()
                 self.port = port
-                print(f"Web 服务已启动: http://{self.host}:{port}")
+                logger.info("Web 服务已启动: http://%s:%s", self.host, port)
                 break
             except OSError:
                 port += 1
 
         if self._site is None:
-            print(f"错误: 无法启动 Web 服务，端口 {self.port}-{self.port + 9} 均被占用")
+            logger.error("无法启动 Web 服务，端口 %s-%s 均被占用", self.port, self.port + 9)
 
     async def stop(self):
         """停止 Web 服务"""

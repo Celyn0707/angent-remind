@@ -132,7 +132,7 @@ class AgentMonitor:
         self.renderer.initialize()
 
         # 启动异步服务
-        self._loop.run_until_complete(self._start_services())
+        asyncio.run_coroutine_threadsafe(self._start_services(), self._loop).result()
 
         # 启动轮询
         self._timer.start(self.config.poll_interval * 1000)

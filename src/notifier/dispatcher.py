@@ -1,6 +1,9 @@
+import logging
 from typing import List
 from .base import BaseNotifier
 from src.models import AgentState
+
+logger = logging.getLogger(__name__)
 
 
 class Dispatcher:
@@ -27,4 +30,4 @@ class Dispatcher:
             try:
                 await notifier.send(state)
             except Exception as e:
-                print(f"通知器 {notifier.__class__.__name__} 发送失败: {e}")
+                logger.error("通知器 %s 发送失败: %s", notifier.__class__.__name__, e)

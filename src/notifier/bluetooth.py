@@ -1,8 +1,11 @@
 import json
 import asyncio
+import logging
 from typing import Optional
 from .base import BaseNotifier
 from src.models import AgentState
+
+logger = logging.getLogger(__name__)
 
 try:
     from bleak import BleakGATTServer, BleakGATTCharacteristic
@@ -36,16 +39,16 @@ class BluetoothNotifier(BaseNotifier):
     async def start(self):
         """启动蓝牙服务"""
         if not BLEAK_AVAILABLE:
-            print("bleak 未安装，蓝牙服务不可用")
+            logger.warning("bleak 未安装，蓝牙服务不可用")
             return
 
         try:
             self._server = BleakGATTServer()
             # TODO: 添加 GATT Service 和 Characteristics
             await self._server.start()
-            print(f"蓝牙服务已启动: {self.device_name}")
+            logger.info("蓝牙服务已启动: %s", self.device_name)
         except Exception as e:
-            print(f"蓝牙服务启动失败: {e}")
+            logger.error("蓝牙服务启动失败: %s", e)
 
     async def stop(self):
         """停止蓝牙服务"""
@@ -62,7 +65,7 @@ class BluetoothNotifier(BaseNotifier):
             # TODO: 通过 GATT Characteristic Notify 发送数据
             return True
         except Exception as e:
-            print(f"蓝牙发送失败: {e}")
+            logger.error("蓝牙发送失败: %s", e)
             return False
 
     def _state_to_bytes(self, state: AgentState) -> bytes:

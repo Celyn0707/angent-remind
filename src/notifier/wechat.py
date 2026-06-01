@@ -1,7 +1,10 @@
+import logging
 import requests
 from typing import Optional
 from .base import BaseNotifier
 from src.models import AgentState, StatusType
+
+logger = logging.getLogger(__name__)
 
 
 class WeChatNotifier(BaseNotifier):
@@ -49,7 +52,7 @@ class WeChatNotifier(BaseNotifier):
             result = response.json()
             return result.get("errcode") == 0
         except Exception as e:
-            print(f"企业微信推送失败: {e}")
+            logger.error("企业微信推送失败: %s", e)
             return False
 
     def _build_message(self, state: AgentState) -> str:
