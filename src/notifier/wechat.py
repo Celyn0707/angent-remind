@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import requests
 from typing import Optional
 from .base import BaseNotifier
@@ -43,7 +44,8 @@ class WeChatNotifier(BaseNotifier):
         }
 
         try:
-            response = requests.post(
+            response = await asyncio.to_thread(
+                requests.post,
                 self.webhook,
                 json=payload,
                 timeout=10

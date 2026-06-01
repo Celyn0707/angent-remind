@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Set
 from aiohttp import web, WSMsgType
 from .base import BaseNotifier
@@ -29,6 +30,8 @@ class WebNotifier(BaseNotifier):
         self._app.router.add_get("/ws", self._websocket_handler)
         self._app.router.add_get("/api/status", self._status_handler)
         self._app.router.add_get("/", self._index_handler)
+        self._app.router.add_get("/style.css", self._css_handler)
+        self._app.router.add_get("/app.js", self._js_handler)
 
         self._runner = web.AppRunner(self._app)
         await self._runner.setup()
@@ -111,19 +114,55 @@ class WebNotifier(BaseNotifier):
         """REST API 状态接口"""
         return web.json_response(self._current_state)
 
+    @staticmethod
+    def _get_web_dir() -> Path:
+        """获取 web 静态资源目录的绝对路径"""
+        # 从项目根目录查找 web 目录
+        project_root = Path(__file__).resolve().parent.parent.parent
+        return project_root / "web"
+
     async def _index_handler(self, request: web.Request) -> web.Response:
-        """主页"""
-        html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Agent 状态监控</title>
-        </head>
-        <body>
-            <h1>Agent 状态监控</h1>
-            <p>请在手机上访问此页面</p>
-        </body>
-        </html>
-        """
-        return web.Response(text=html, content_type="text/html")
+        """主页 - 读取 web/index.html 文件"""
+        web_dir = self._get_web_dir()
+        index_file = web_dir / "index.html"
+
+        if not index_file.exists():
+            logger.warning("index.html 不存在: %s", index_file)
+            return web.Response(text="页面未找到", status=404)
+
+        try:
+            html = index_file.read_text(encoding="utf-8")
+            return web.Response(text=html, content_type="text/html")
+        except Exception as e:
+            logger.error("读取 index.html 失败: %s", e)
+            return web.Response(text="服务器内部错误", status=500)
+
+    async def _css_handler(self, request: web.Request) -> web.Response:
+        """提供 style.css"""
+        web_dir = self._get_web_dir()
+        css_file = web_dir / "style.css"
+
+        if not css_file.exists():
+            return web.Response(text="", content_type="text/css")
+
+        try:
+            css = css_file.read_text(encoding="utf-8")
+            return web.Response(text=css, content_type="text/css")
+        except Exception as e:
+            logger.error("读取 style.css 失败: %s", e)
+            return web.Response(text="", content_type="text/css")
+
+    async def _js_handler(self, request: web.Request) -> web.Response:
+        """提供 app.js"""
+        web_dir = self._get_web_dir()
+        js_file = web_dir / "app.js"
+
+        if not js_file.exists():
+            return web.Response(text="", content_type="application/javascript")
+
+        try:
+            js = js_file.read_text(encoding="utf-8")
+            return web.Response(text=js, content_type="application/javascript")
+        except Exception as e:
+            logger.error("读取 app.js 失败: %s", e)
+            return web.Response(text="", content_type="application/javascript")

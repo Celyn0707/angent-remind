@@ -163,6 +163,20 @@ class AgentMonitor:
         """关闭程序"""
         self._timer.stop()
         self.renderer.shutdown()
+
+        # 停止异步服务
+        stop_coros = []
+        if hasattr(self, 'web_notifier'):
+            stop_coros.append(self.web_notifier.stop())
+        if self.bluetooth_notifier is not None:
+            stop_coros.append(self.bluetooth_notifier.stop())
+
+        if stop_coros:
+            async def _stop_all():
+                for coro in stop_coros:
+                    await coro
+            asyncio.run_coroutine_threadsafe(_stop_all(), self._loop).result(timeout=5)
+
         # 停止异步事件循环
         if self._loop.is_running():
             self._loop.call_soon_threadsafe(self._loop.stop)
