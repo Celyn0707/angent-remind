@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent 状态监控</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Agent 状态监控</h1>
+            <div id="connection-status" class="disconnected">未连接</div>
+        </header>
+
+        <main>
+            <div id="status-card" class="status-card">
+                <div id="status-icon" class="status-icon">⏳</div>
+                <div id="status-text" class="status-text">等待中</div>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                    <span id="progress-text" class="progress-text">0%</span>
+                </div>
+                <div id="task-name" class="task-name">-</div>
+                <div id="message" class="message">-</div>
+                <div id="runtime" class="runtime">-</div>
+            </div>
+
+            <div class="history-section">
+                <h2>最近状态</h2>
+                <div id="history-list" class="history-list"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
