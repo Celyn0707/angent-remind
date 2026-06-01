@@ -1,0 +1,39 @@
+api:
+  type: rest
+  url: http://localhost:8080/api/agent/status
+  method: GET
+  headers: {}
+  poll_interval: 5
+  timeout: 10
+  retry_count: 3
+
+window:
+  position: bottom-right
+  opacity: 0.9
+  always_on_top: true
+  click_to_expand: true
+  drag_enabled: true
+  snap_to_edge: true
+
+colors:
+  running: "#4ade80"
+  completed: "#60a5fa"
+  error: "#f87171"
+  waiting: "#fbbf24"
+  confirm: "#c084fc"
+
+sounds:
+  enabled: true
+  volume: 0.7
+  on_running: "sounds/running.mp3"
+  on_completed: "sounds/completed.mp3"
+  on_error: "sounds/error.mp3"
+  on_waiting: "sounds/waiting.mp3"
+  on_confirm: "sounds/confirm.mp3"
+
+logging:
+  enabled: true
+  level: INFO
+  file: logs/agent-monitor.log
+  max_size: 10MB
+  backup_count: 5
