@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 import yaml
 
 
@@ -79,6 +79,43 @@ class Config:
     def sound_volume(self) -> float:
         return self._config.get("sounds", {}).get("volume", 0.7)
 
+    # 通知配置属性
+    @property
+    def wechat_enabled(self) -> bool:
+        return self._config.get("notifications", {}).get("wechat", {}).get("enabled", True)
+
+    @property
+    def wechat_webhook(self) -> str:
+        return self._config.get("notifications", {}).get("wechat", {}).get("webhook", "")
+
+    @property
+    def wechat_push_on(self) -> List[str]:
+        return self._config.get("notifications", {}).get("wechat", {}).get("push_on", ["running", "completed", "error", "waiting", "confirm"])
+
+    @property
+    def web_enabled(self) -> bool:
+        return self._config.get("notifications", {}).get("web", {}).get("enabled", True)
+
+    @property
+    def web_port(self) -> int:
+        return self._config.get("notifications", {}).get("web", {}).get("port", 8080)
+
+    @property
+    def web_host(self) -> str:
+        return self._config.get("notifications", {}).get("web", {}).get("host", "0.0.0.0")
+
+    @property
+    def bluetooth_enabled(self) -> bool:
+        return self._config.get("notifications", {}).get("bluetooth", {}).get("enabled", False)
+
+    @property
+    def bluetooth_device_name(self) -> str:
+        return self._config.get("notifications", {}).get("bluetooth", {}).get("device_name", "Agent Monitor")
+
+    @property
+    def bluetooth_auto_reconnect(self) -> bool:
+        return self._config.get("notifications", {}).get("bluetooth", {}).get("auto_reconnect", True)
+
     def validate(self) -> bool:
         """验证配置有效性"""
         if self.poll_interval <= 0:
@@ -86,5 +123,7 @@ class Config:
         if self.api_timeout <= 0:
             return False
         if not 0 <= self.window_opacity <= 1:
+            return False
+        if self.web_port < 0 or self.web_port > 65535:
             return False
         return True

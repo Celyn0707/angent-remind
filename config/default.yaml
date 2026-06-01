@@ -15,6 +15,20 @@ window:
   drag_enabled: true
   snap_to_edge: true
 
+notifications:
+  wechat:
+    enabled: true
+    webhook: ""
+    push_on: ["running", "completed", "error", "waiting", "confirm"]
+  web:
+    enabled: true
+    port: 8080
+    host: "0.0.0.0"
+  bluetooth:
+    enabled: false
+    device_name: "Agent Monitor"
+    auto_reconnect: true
+
 colors:
   running: "#4ade80"
   completed: "#60a5fa"

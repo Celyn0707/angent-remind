@@ -57,3 +57,46 @@ def test_invalid_poll_interval():
         assert config.validate() is False
     finally:
         os.unlink(temp_path)
+
+
+def test_notification_config():
+    """测试通知配置"""
+    config = Config()
+    assert config.wechat_enabled is True
+    assert config.wechat_webhook == ""
+    assert config.web_enabled is True
+    assert config.web_port == 8080
+    assert config.web_host == "0.0.0.0"
+    assert config.bluetooth_enabled is False
+    assert config.bluetooth_device_name == "Agent Monitor"
+
+
+def test_notification_config_custom():
+    """测试自定义通知配置"""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        yaml.dump({
+            "notifications": {
+                "wechat": {
+                    "enabled": False,
+                    "webhook": "https://test.webhook.com"
+                },
+                "web": {
+                    "port": 9090
+                },
+                "bluetooth": {
+                    "enabled": True,
+                    "device_name": "My Monitor"
+                }
+            }
+        }, f)
+        temp_path = f.name
+
+    try:
+        config = Config(temp_path)
+        assert config.wechat_enabled is False
+        assert config.wechat_webhook == "https://test.webhook.com"
+        assert config.web_port == 9090
+        assert config.bluetooth_enabled is True
+        assert config.bluetooth_device_name == "My Monitor"
+    finally:
+        os.unlink(temp_path)
