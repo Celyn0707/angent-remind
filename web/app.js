@@ -1,10 +1,20 @@
 class AgentMonitor {
+    static STATUS_ICONS = {
+        running: '⚡',
+        completed: '✅',
+        error: '❌',
+        waiting: '⏳',
+        confirm: '❓'
+    };
+
     constructor() {
         this.ws = null;
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.history = [];
         this.maxHistory = 20;
+        this.runtimeInterval = null;
+        this.startedAt = null;
 
         this.init();
     }
@@ -27,9 +37,13 @@ class AgentMonitor {
         };
 
         this.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'status_update') {
-                this.updateStatus(data.data);
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'status_update') {
+                    this.updateStatus(data.data);
+                }
+            } catch (e) {
+                console.error('解析消息失败:', e, event.data);
             }
         };
 
@@ -66,14 +80,6 @@ class AgentMonitor {
 
     updateStatus(state) {
         // 更新状态卡片
-        const statusIcons = {
-            running: '⚡',
-            completed: '✅',
-            error: '❌',
-            waiting: '⏳',
-            confirm: '❓'
-        };
-
         const statusTexts = {
             running: '运行中',
             completed: '已完成',
@@ -82,7 +88,7 @@ class AgentMonitor {
             confirm: '需要确认'
         };
 
-        document.getElementById('status-icon').textContent = statusIcons[state.status] || '?';
+        document.getElementById('status-icon').textContent = AgentMonitor.STATUS_ICONS[state.status] || '?';
         document.getElementById('status-text').textContent = statusTexts[state.status] || state.status;
         document.getElementById('progress-bar').style.width = `${state.progress}%`;
         document.getElementById('progress-text').textContent = `${state.progress}%`;
@@ -103,16 +109,8 @@ class AgentMonitor {
     }
 
     addHistory(state) {
-        const statusIcons = {
-            running: '⚡',
-            completed: '✅',
-            error: '❌',
-            waiting: '⏳',
-            confirm: '❓'
-        };
-
         const historyItem = {
-            icon: statusIcons[state.status] || '?',
+            icon: AgentMonitor.STATUS_ICONS[state.status] || '?',
             task: state.task,
             time: new Date().toLocaleTimeString()
         };
@@ -127,19 +125,37 @@ class AgentMonitor {
 
     renderHistory() {
         const historyList = document.getElementById('history-list');
-        historyList.innerHTML = this.history.map(item => `
-            <div class="history-item">
-                <span class="history-icon">${item.icon}</span>
-                <div class="history-content">
-                    <div class="history-task">${item.task}</div>
-                    <div class="history-time">${item.time}</div>
-                </div>
-            </div>
-        `).join('');
+        historyList.innerHTML = '';
+        for (const item of this.history) {
+            const row = document.createElement('div');
+            row.className = 'history-item';
+
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'history-icon';
+            iconSpan.textContent = item.icon;
+
+            const content = document.createElement('div');
+            content.className = 'history-content';
+
+            const taskDiv = document.createElement('div');
+            taskDiv.className = 'history-task';
+            taskDiv.textContent = item.task;
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'history-time';
+            timeDiv.textContent = item.time;
+
+            content.appendChild(taskDiv);
+            content.appendChild(timeDiv);
+            row.appendChild(iconSpan);
+            row.appendChild(content);
+            historyList.appendChild(row);
+        }
     }
 
     updateRuntime() {
-        setInterval(() => {
+        this.clearRuntime();
+        this.runtimeInterval = setInterval(() => {
             if (this.startedAt) {
                 const now = new Date();
                 const diff = Math.floor((now - this.startedAt) / 1000);
@@ -149,6 +165,13 @@ class AgentMonitor {
                     `已运行：${minutes} 分 ${seconds} 秒`;
             }
         }, 1000);
+    }
+
+    clearRuntime() {
+        if (this.runtimeInterval) {
+            clearInterval(this.runtimeInterval);
+            this.runtimeInterval = null;
+        }
     }
 }
 
