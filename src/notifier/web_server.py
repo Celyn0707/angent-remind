@@ -1,5 +1,3 @@
-import asyncio
-import json
 from typing import Set
 from aiohttp import web, WSMsgType
 from .base import BaseNotifier
@@ -20,7 +18,7 @@ class WebNotifier(BaseNotifier):
 
     def is_available(self) -> bool:
         """检查通知器是否可用"""
-        return True
+        return self._site is not None
 
     async def start(self):
         """启动 Web 服务"""
@@ -44,6 +42,9 @@ class WebNotifier(BaseNotifier):
             except OSError:
                 port += 1
 
+        if self._site is None:
+            print(f"错误: 无法启动 Web 服务，端口 {self.port}-{self.port + 9} 均被占用")
+
     async def stop(self):
         """停止 Web 服务"""
         if self._site:
@@ -53,37 +54,30 @@ class WebNotifier(BaseNotifier):
 
     async def send(self, state: AgentState) -> bool:
         """发送状态更新"""
-        self._current_state = self._state_to_dict(state)
-        await self._broadcast(state)
-        return True
+        self._current_state = state.to_dict()
+        return await self._broadcast(state)
 
-    def _state_to_dict(self, state: AgentState) -> dict:
-        """将状态转换为字典"""
-        return {
-            "status": state.status.value,
-            "task": state.task,
-            "progress": state.progress,
-            "message": state.message,
-            "started_at": state.started_at.isoformat(),
-            "error": state.error,
-            "confirm_required": state.confirm_required
-        }
-
-    async def _broadcast(self, state: AgentState):
+    async def _broadcast(self, state: AgentState) -> bool:
         """广播到所有 WebSocket 客户端"""
+        if not self._clients:
+            return False
+
         message = {
             "type": "status_update",
-            "data": self._state_to_dict(state)
+            "data": state.to_dict()
         }
 
         disconnected = set()
+        success_count = 0
         for ws in self._clients:
             try:
                 await ws.send_json(message)
+                success_count += 1
             except Exception:
                 disconnected.add(ws)
 
         self._clients -= disconnected
+        return success_count > 0
 
     async def _websocket_handler(self, request: web.Request) -> web.WebSocketResponse:
         """WebSocket 连接处理"""

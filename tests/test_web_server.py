@@ -27,13 +27,12 @@ def test_web_notifier_creation():
 def test_web_notifier_is_available():
     """测试可用性检查"""
     notifier = WebNotifier(port=8080)
-    assert notifier.is_available() is True
+    assert notifier.is_available() is False
 
 
 def test_web_notifier_build_message(sample_state):
     """测试构建消息"""
-    notifier = WebNotifier(port=8080)
-    message = notifier._state_to_dict(sample_state)
+    message = sample_state.to_dict()
 
     assert message["status"] == "running"
     assert message["task"] == "测试"
