@@ -1,8 +1,11 @@
 # src/poller/rest_poller.py
+import logging
 import requests
 from typing import Optional
 from .base import BasePoller
 from src.models import AgentState
+
+logger = logging.getLogger(__name__)
 
 
 class RestPoller(BasePoller):
@@ -25,15 +28,23 @@ class RestPoller(BasePoller):
             )
             response.raise_for_status()
             data = response.json()
-            return AgentState.from_dict(data)
+            state = AgentState.from_dict(data)
+            self._notify(state)
+            return state
         except Exception as e:
-            print(f"轮询失败: {e}")
+            logger.error("轮询失败: %s", e)
             return None
 
     def start(self):
-        """开始轮询"""
+        """开始轮询
+
+        注意: 当前为占位实现。实际的轮询循环将在 main.py 中通过 QTimer 实现。
+        """
         self._running = True
 
     def stop(self):
-        """停止轮询"""
+        """停止轮询
+
+        注意: 当前为占位实现。实际的轮询循环将在 main.py 中通过 QTimer 实现。
+        """
         self._running = False

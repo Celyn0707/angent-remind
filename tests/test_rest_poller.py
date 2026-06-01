@@ -56,3 +56,41 @@ def test_on_status_change_callback():
     poller.on_status_change(callback)
 
     assert callback in poller._callbacks
+
+
+@patch('src.poller.rest_poller.requests.get')
+def test_poll_triggers_notify_on_success(mock_get):
+    """测试成功轮询时触发回调"""
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "status": "running",
+        "task": "测试任务",
+        "progress": 50,
+        "message": "处理中",
+        "started_at": "2026-06-01T10:00:00"
+    }
+    mock_response.status_code = 200
+    mock_response.raise_for_status = Mock()
+    mock_get.return_value = mock_response
+
+    poller = RestPoller(url="http://test.com/api", interval=5)
+    callback = Mock()
+    poller.on_status_change(callback)
+
+    state = poller.poll()
+
+    callback.assert_called_once_with(state)
+
+
+@patch('src.poller.rest_poller.requests.get')
+def test_poll_does_not_trigger_notify_on_failure(mock_get):
+    """测试轮询失败时不触发回调"""
+    mock_get.side_effect = Exception("Connection error")
+
+    poller = RestPoller(url="http://test.com/api", interval=5)
+    callback = Mock()
+    poller.on_status_change(callback)
+
+    poller.poll()
+
+    callback.assert_not_called()
