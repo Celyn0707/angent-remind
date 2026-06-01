@@ -26,6 +26,8 @@ class StateManager:
 
     def update_state(self, new_state: AgentState):
         """更新状态"""
+        if new_state is None or not isinstance(new_state, AgentState):
+            return
         # 相同状态不更新
         if self._current_state and self._is_same_state(self._current_state, new_state):
             return

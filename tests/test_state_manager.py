@@ -88,3 +88,29 @@ def test_state_manager_history_limit():
     history = manager.get_history()
     assert len(history) == 10
     assert history[0].task == "任务5"
+
+
+def test_state_manager_update_none():
+    """测试传入 None 时安全忽略而不崩溃"""
+    manager = StateManager()
+    callback = Mock()
+    manager.on_state_change(callback)
+
+    manager.update_state(None)
+
+    assert manager.get_current_state() is None
+    callback.assert_not_called()
+
+
+def test_state_manager_update_invalid_type():
+    """测试传入非法类型时安全忽略而不崩溃"""
+    manager = StateManager()
+    callback = Mock()
+    manager.on_state_change(callback)
+
+    manager.update_state("not a state")
+    manager.update_state(123)
+    manager.update_state({"status": "running"})
+
+    assert manager.get_current_state() is None
+    callback.assert_not_called()
