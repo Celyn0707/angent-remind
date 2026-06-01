@@ -1,7 +1,9 @@
 # src/main.py
 import sys
 import asyncio
+import threading
 import signal
+import logging
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QTimer
 from src.config import Config
@@ -14,6 +16,8 @@ from src.notifier.web_server import WebNotifier
 from src.notifier.bluetooth import BluetoothNotifier
 from src.ui.renderer import UIRenderer
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 class AgentMonitor:
@@ -28,6 +32,7 @@ class AgentMonitor:
         self.state_manager = StateManager()
         self.dispatcher = Dispatcher()
         self.renderer = UIRenderer(self.config)
+        self.bluetooth_notifier = None
 
         # 初始化轮询器
         self.poller = self._create_poller()
@@ -42,8 +47,17 @@ class AgentMonitor:
         self._timer = QTimer()
         self._timer.timeout.connect(self._poll)
 
-        # 异步事件循环
+        # 异步事件循环（在后台线程中运行）
         self._loop = asyncio.new_event_loop()
+        self._loop_thread = threading.Thread(
+            target=self._run_event_loop, daemon=True
+        )
+        self._loop_thread.start()
+
+    def _run_event_loop(self):
+        """在后台线程中运行 asyncio 事件循环"""
+        asyncio.set_event_loop(self._loop)
+        self._loop.run_forever()
 
     def _create_poller(self) -> RestPoller:
         """创建轮询器"""
@@ -51,7 +65,7 @@ class AgentMonitor:
             url=self.config.api_url,
             interval=self.config.poll_interval,
             timeout=self.config.api_timeout,
-            headers=self.config._config.get("api", {}).get("headers", {})
+            headers=self.config.api_headers
         )
 
     def _setup_notifiers(self):
@@ -74,11 +88,11 @@ class AgentMonitor:
 
         # 蓝牙通知器
         if self.config.bluetooth_enabled:
-            bluetooth = BluetoothNotifier(
+            self.bluetooth_notifier = BluetoothNotifier(
                 device_name=self.config.bluetooth_device_name,
                 auto_reconnect=self.config.bluetooth_auto_reconnect
             )
-            self.dispatcher.register(bluetooth)
+            self.dispatcher.register(self.bluetooth_notifier)
 
     def _connect_signals(self):
         """连接信号"""
@@ -100,14 +114,17 @@ class AgentMonitor:
 
     def _poll(self):
         """执行轮询"""
-        state = self.poller.poll()
-        if state:
-            self.state_manager.update_state(state)
+        try:
+            self.poller.poll()
+        except Exception as e:
+            logger.error("轮询执行异常: %s", e)
 
     async def _start_services(self):
         """启动异步服务"""
         if hasattr(self, 'web_notifier'):
             await self.web_notifier.start()
+        if self.bluetooth_notifier is not None:
+            await self.bluetooth_notifier.start()
 
     def run(self):
         """运行程序"""
@@ -133,17 +150,22 @@ class AgentMonitor:
         )
         self.renderer.render(initial_state)
 
-        print("Agent 状态监控已启动")
-        print(f"轮询地址: {self.config.api_url}")
-        print(f"轮询间隔: {self.config.poll_interval} 秒")
+        logger.info("Agent 状态监控已启动")
+        logger.info("轮询地址: %s", self.config.api_url)
+        logger.info("轮询间隔: %s 秒", self.config.poll_interval)
 
         # 运行事件循环
-        return self.app.exec()
+        exit_code = self.app.exec()
+        self.shutdown()
+        return exit_code
 
     def shutdown(self):
         """关闭程序"""
         self._timer.stop()
         self.renderer.shutdown()
+        # 停止异步事件循环
+        if self._loop.is_running():
+            self._loop.call_soon_threadsafe(self._loop.stop)
 
 
 def main():

@@ -52,6 +52,10 @@ class Config:
         return self._config.get("api", {}).get("timeout", 10)
 
     @property
+    def api_headers(self) -> dict:
+        return self._config.get("api", {}).get("headers", {})
+
+    @property
     def retry_count(self) -> int:
         return self._config.get("api", {}).get("retry_count", 3)
 
