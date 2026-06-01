@@ -84,6 +84,9 @@ class FloatingWindow(QWidget):
 
     def update_state(self, state: AgentState):
         """更新状态"""
+        if state is None or not isinstance(state, AgentState):
+            return
+
         self._current_state = state
 
         # 更新图标
