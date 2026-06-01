@@ -21,4 +21,4 @@ watchdog>=3.0.0
 pytest>=7.4.0
 pytest-qt>=4.2.0
 pytest-aiohttp>=1.0.0
-pytest-asyncio>=0.21.0
+pytest-asyncio>=0.23.0
