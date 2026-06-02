@@ -182,16 +182,65 @@ class AgentMonitor:
             self._loop.call_soon_threadsafe(self._loop.stop)
 
 
+def show_gui():
+    """显示管理控制台"""
+    from src.gui.main_window import MainWindow
+    from src.gui.config_panel import ConfigPanel
+    from src.gui.status_panel import StatusPanel
+    from src.gui.notification_panel import NotificationPanel
+    from src.gui.log_panel import LogPanel
+
+    monitor = AgentMonitor()
+
+    # 创建主窗口
+    window = MainWindow()
+
+    # 创建面板
+    config_panel = ConfigPanel(monitor.config)
+    status_panel = StatusPanel()
+    notification_panel = NotificationPanel(monitor.config)
+    log_panel = LogPanel()
+
+    # 添加面板到主窗口
+    window.add_panel(config_panel, 0)
+    window.add_panel(status_panel, 1)
+    window.add_panel(notification_panel, 2)
+    window.add_panel(log_panel, 3)
+
+    # 连接状态更新信号
+    monitor.state_manager.on_state_change(status_panel.update_status)
+    monitor.state_manager.on_state_change(
+        lambda s: status_panel.update_history(monitor.state_manager.get_history())
+    )
+
+    # 启动服务
+    monitor.renderer.initialize()
+    import asyncio
+    asyncio.run_coroutine_threadsafe(monitor._start_services(), monitor._loop).result()
+
+    # 启动轮询
+    monitor._timer.start(monitor.config.poll_interval * 1000)
+
+    # 显示窗口
+    window.show()
+
+    return monitor.app.exec()
+
+
 def main():
     """主函数"""
     import argparse
 
     parser = argparse.ArgumentParser(description="Agent 状态提示软件")
     parser.add_argument("-c", "--config", help="配置文件路径")
+    parser.add_argument("--gui", action="store_true", help="显示管理控制台")
     args = parser.parse_args()
 
-    monitor = AgentMonitor(args.config)
-    sys.exit(monitor.run())
+    if args.gui:
+        sys.exit(show_gui())
+    else:
+        monitor = AgentMonitor(args.config)
+        sys.exit(monitor.run())
 
 
 if __name__ == "__main__":
