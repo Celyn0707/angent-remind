@@ -120,6 +120,15 @@ class Config:
     def bluetooth_auto_reconnect(self) -> bool:
         return self._config.get("notifications", {}).get("bluetooth", {}).get("auto_reconnect", True)
 
+    # 日志配置属性
+    @property
+    def logging_enabled(self) -> bool:
+        return self._config.get("logging", {}).get("enabled", True)
+
+    @property
+    def log_level(self) -> str:
+        return self._config.get("logging", {}).get("level", "INFO")
+
     def get(self, key: str, default=None):
         """获取配置值（支持点号分隔的路径）"""
         keys = key.split(".")

@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
     QLabel, QComboBox, QLineEdit, QPushButton,
     QTableWidget, QTableWidgetItem, QHeaderView,
-    QTextEdit, QSplitter
+    QTextEdit, QSplitter, QMessageBox
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
@@ -61,6 +61,7 @@ class LogPanel(QWidget):
                 background-color: #585b70;
             }
         """)
+        self._refresh_btn.clicked.connect(self._on_refresh)
         toolbar.addWidget(self._refresh_btn)
 
         self._clear_btn = QPushButton("清空")
@@ -92,6 +93,7 @@ class LogPanel(QWidget):
                 background-color: #585b70;
             }
         """)
+        self._export_btn.clicked.connect(self._on_export)
         toolbar.addWidget(self._export_btn)
 
         layout.addLayout(toolbar)
@@ -141,6 +143,14 @@ class LogPanel(QWidget):
 
         splitter.setSizes([400, 200])
         layout.addWidget(splitter)
+
+    def _on_refresh(self):
+        """刷新日志"""
+        QMessageBox.information(self, "提示", "功能开发中...")
+
+    def _on_export(self):
+        """导出日志"""
+        QMessageBox.information(self, "提示", "功能开发中...")
 
     def add_log(self, log_entry: dict):
         """添加日志"""

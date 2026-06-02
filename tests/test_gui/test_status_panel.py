@@ -1,14 +1,7 @@
 import pytest
 from datetime import datetime
-from PyQt6.QtWidgets import QApplication
 from src.gui.status_panel import StatusPanel
 from src.models import AgentState, StatusType
-
-
-@pytest.fixture(scope="session")
-def app():
-    """创建 QApplication"""
-    return QApplication([])
 
 
 @pytest.fixture

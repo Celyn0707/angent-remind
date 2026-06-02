@@ -9,7 +9,7 @@ def test_load_default_config():
     """测试加载默认配置"""
     config = Config()
     assert config.api_type == "rest"
-    assert config.poll_interval == 5
+    assert config.poll_interval == 10
     assert config.window_opacity == 0.9
 
 

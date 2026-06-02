@@ -1,13 +1,6 @@
 import pytest
-from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
 from src.gui.main_window import MainWindow
-
-
-@pytest.fixture(scope="session")
-def app():
-    """创建 QApplication"""
-    return QApplication([])
 
 
 @pytest.fixture

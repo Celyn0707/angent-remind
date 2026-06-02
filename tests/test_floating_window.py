@@ -10,7 +10,10 @@ from datetime import datetime
 @pytest.fixture(scope="session")
 def app():
     """创建 QApplication（整个测试会话只创建一次）"""
-    return QApplication([])
+    instance = QApplication.instance()
+    if instance is None:
+        instance = QApplication([])
+    yield instance
 
 
 @pytest.fixture

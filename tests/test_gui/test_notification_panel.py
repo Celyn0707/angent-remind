@@ -1,13 +1,6 @@
 import pytest
-from PyQt6.QtWidgets import QApplication
 from src.gui.notification_panel import NotificationPanel
 from src.config import Config
-
-
-@pytest.fixture(scope="session")
-def app():
-    """创建 QApplication"""
-    return QApplication([])
 
 
 @pytest.fixture

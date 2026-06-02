@@ -1,12 +1,5 @@
 import pytest
-from PyQt6.QtWidgets import QApplication
 from src.gui.log_panel import LogPanel
-
-
-@pytest.fixture(scope="session")
-def app():
-    """创建 QApplication"""
-    return QApplication([])
 
 
 @pytest.fixture

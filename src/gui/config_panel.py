@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
     QLabel, QLineEdit, QSpinBox, QCheckBox,
-    QComboBox, QSlider, QPushButton, QScrollArea
+    QComboBox, QSlider, QPushButton, QScrollArea,
+    QMessageBox
 )
 from PyQt6.QtCore import Qt
 from src.config import Config
@@ -211,6 +212,12 @@ class ConfigPanel(QWidget):
         self._sounds_enabled_input.setChecked(self._config.sounds_enabled)
         self._volume_slider.setValue(int(self._config.sound_volume * 100))
 
+        # 日志配置
+        self._logging_enabled_input.setChecked(self._config.logging_enabled)
+        level_index = self._log_level_input.findText(self._config.log_level)
+        if level_index >= 0:
+            self._log_level_input.setCurrentIndex(level_index)
+
     def save_config(self):
         """保存配置"""
         # API 配置
@@ -228,6 +235,15 @@ class ConfigPanel(QWidget):
         # 声音配置
         self._config.set("sounds.enabled", self._sounds_enabled_input.isChecked())
         self._config.set("sounds.volume", self._volume_slider.value() / 100)
+
+        # 日志配置
+        self._config.set("logging.enabled", self._logging_enabled_input.isChecked())
+        self._config.set("logging.level", self._log_level_input.currentText())
+
+        # 验证配置
+        if not self._config.validate():
+            QMessageBox.warning(self, "配置错误", "配置验证失败，请检查输入参数是否合法。")
+            return
 
         # 保存到文件
         self._config.save()

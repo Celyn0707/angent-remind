@@ -182,15 +182,16 @@ class AgentMonitor:
             self._loop.call_soon_threadsafe(self._loop.stop)
 
 
-def show_gui():
+def show_gui(config_path: str = None):
     """显示管理控制台"""
+    import asyncio
     from src.gui.main_window import MainWindow
     from src.gui.config_panel import ConfigPanel
     from src.gui.status_panel import StatusPanel
     from src.gui.notification_panel import NotificationPanel
     from src.gui.log_panel import LogPanel
 
-    monitor = AgentMonitor()
+    monitor = AgentMonitor(config_path)
 
     # 创建主窗口
     window = MainWindow()
@@ -213,9 +214,7 @@ def show_gui():
         lambda s: status_panel.update_history(monitor.state_manager.get_history())
     )
 
-    # 启动服务
-    monitor.renderer.initialize()
-    import asyncio
+    # 启动异步服务（跳过悬浮窗初始化，GUI 模式仅使用管理控制台）
     asyncio.run_coroutine_threadsafe(monitor._start_services(), monitor._loop).result()
 
     # 启动轮询
@@ -224,7 +223,9 @@ def show_gui():
     # 显示窗口
     window.show()
 
-    return monitor.app.exec()
+    exit_code = monitor.app.exec()
+    monitor.shutdown()
+    return exit_code
 
 
 def main():
@@ -237,7 +238,7 @@ def main():
     args = parser.parse_args()
 
     if args.gui:
-        sys.exit(show_gui())
+        sys.exit(show_gui(config_path=args.config))
     else:
         monitor = AgentMonitor(args.config)
         sys.exit(monitor.run())

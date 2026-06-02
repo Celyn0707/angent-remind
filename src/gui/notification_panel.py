@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
     QLabel, QLineEdit, QSpinBox, QCheckBox,
-    QPushButton, QScrollArea
+    QPushButton, QScrollArea, QMessageBox
 )
 from PyQt6.QtCore import Qt
 from src.config import Config
@@ -56,6 +56,7 @@ class NotificationPanel(QWidget):
                 background-color: #585b70;
             }
         """)
+        self._test_wechat_btn.clicked.connect(self._on_test_wechat)
         wechat_layout.addWidget(self._test_wechat_btn)
 
         scroll_layout.addWidget(wechat_group)
@@ -117,6 +118,7 @@ class NotificationPanel(QWidget):
                 background-color: #585b70;
             }
         """)
+        self._scan_bluetooth_btn.clicked.connect(self._on_scan_bluetooth)
         btn_layout.addWidget(self._scan_bluetooth_btn)
 
         self._pair_bluetooth_btn = QPushButton("配对")
@@ -132,6 +134,7 @@ class NotificationPanel(QWidget):
                 background-color: #585b70;
             }
         """)
+        self._pair_bluetooth_btn.clicked.connect(self._on_pair_bluetooth)
         btn_layout.addWidget(self._pair_bluetooth_btn)
         btn_layout.addStretch()
         bluetooth_layout.addLayout(btn_layout)
@@ -181,6 +184,18 @@ class NotificationPanel(QWidget):
 
         layout.addLayout(bottom_btn_layout)
 
+    def _on_test_wechat(self):
+        """测试企业微信连接"""
+        QMessageBox.information(self, "提示", "功能开发中...")
+
+    def _on_scan_bluetooth(self):
+        """扫描蓝牙设备"""
+        QMessageBox.information(self, "提示", "功能开发中...")
+
+    def _on_pair_bluetooth(self):
+        """配对蓝牙设备"""
+        QMessageBox.information(self, "提示", "功能开发中...")
+
     def load_settings(self):
         """加载设置"""
         # 企业微信
@@ -211,6 +226,11 @@ class NotificationPanel(QWidget):
         self._config.set("notifications.bluetooth.enabled", self._bluetooth_enabled_input.isChecked())
         self._config.set("notifications.bluetooth.device_name", self._bluetooth_device_name_input.text())
         self._config.set("notifications.bluetooth.auto_reconnect", self._bluetooth_auto_reconnect_input.isChecked())
+
+        # 验证配置
+        if not self._config.validate():
+            QMessageBox.warning(self, "配置错误", "配置验证失败，请检查输入参数是否合法。")
+            return
 
         # 保存到文件
         self._config.save()
