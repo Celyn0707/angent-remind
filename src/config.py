@@ -120,6 +120,39 @@ class Config:
     def bluetooth_auto_reconnect(self) -> bool:
         return self._config.get("notifications", {}).get("bluetooth", {}).get("auto_reconnect", True)
 
+    def get(self, key: str, default=None):
+        """获取配置值（支持点号分隔的路径）"""
+        keys = key.split(".")
+        value = self._config
+        for k in keys:
+            if isinstance(value, dict):
+                value = value.get(k)
+            else:
+                return default
+            if value is None:
+                return default
+        return value
+
+    def set(self, key: str, value):
+        """设置配置值（支持点号分隔的路径）"""
+        keys = key.split(".")
+        config = self._config
+        for k in keys[:-1]:
+            if k not in config:
+                config[k] = {}
+            config = config[k]
+        config[keys[-1]] = value
+
+    def save(self, path: str = None):
+        """保存配置到文件"""
+        save_path = path or str(self.DEFAULT_CONFIG_PATH)
+        with open(save_path, 'w', encoding='utf-8') as f:
+            yaml.dump(self._config, f, default_flow_style=False, allow_unicode=True)
+
+    def to_dict(self) -> dict:
+        """导出配置为字典"""
+        return self._config.copy()
+
     def validate(self) -> bool:
         """验证配置有效性"""
         if self.poll_interval <= 0:
