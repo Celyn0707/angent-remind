@@ -63,16 +63,15 @@ pip install -r requirements.txt
 
 ## 使用
 
-### 启动程序
-
 ```bash
+# 使用默认配置（悬浮窗模式）
 python -m src.main
-```
 
-### 指定配置文件
+# 指定配置文件
+python -m src.main -c path/to/config.yaml
 
-```bash
-python -m src.main -c /path/to/config.yaml
+# 显示管理控制台
+python -m src.main --gui
 ```
 
 ### 命令行参数
@@ -80,6 +79,21 @@ python -m src.main -c /path/to/config.yaml
 | 参数 | 说明 |
 |------|------|
 | `-c`, `--config` | 指定配置文件路径 |
+| `--gui` | 启动管理控制台（GUI 模式） |
+
+## 管理控制台
+
+管理控制台提供图形化界面，包含以下功能：
+
+- **配置管理**：图形化编辑 API、界面、声音、日志等配置
+- **状态监控**：实时显示 Agent 状态、任务信息、运行时间、历史记录
+- **通知管理**：管理企业微信、手机网页、蓝牙、桌面悬浮窗等通知通道
+- **日志查看**：查看运行日志、错误日志、状态变化日志、通知日志
+
+启动管理控制台：
+```bash
+python -m src.main --gui
+```
 
 ## 配置
 
@@ -245,7 +259,12 @@ agent-monitor/
 │       ├── __init__.py
 │       ├── floating_window.py # 悬浮窗
 │       ├── renderer.py       # UI 渲染器
-│       └── system_tray.py    # 系统托盘
+│       ├── system_tray.py    # 系统托盘
+│       ├── gui_control_panel.py    # 管理控制台
+│       ├── config_tab.py     # 配置管理标签页
+│       ├── status_tab.py     # 状态监控标签页
+│       ├── notification_tab.py # 通知管理标签页
+│       └── log_tab.py        # 日志查看标签页
 ├── tests/
 │   ├── __init__.py
 │   ├── test_models.py        # 数据模型测试
